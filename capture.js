@@ -19,52 +19,69 @@
     var photo = null;
     var startbutton = null;
 
-    function startup() {
+    function startup() { //reference
+        console.log('hi');
         video = document.getElementById('video');
         canvas = document.getElementById('canvas');
         photo = document.getElementById('photo');
         startbutton = document.getElementById('startbutton');
-
-
-        video.addEventListener('canplay', function(ev) {
+        console.log(photo);
+        //get the media stream
+        navigator.mediaDevices.getUserMedia({ video: true }) //access
+            .then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(function(err) { //error
+                console.log("An error occurred: " + err);
+            });
+        //Listen for the video to start playing
+        video.addEventListener('canplay', function(ev) { //
             if (!streaming) {
                 height = video.videoHeight / (video.videoWidth / width);
+                console.log('height');
 
-                // Firefox currently has a bug where the height can't be read from
-                // the video, so we will make assumptions if this happens.
-
-                if (isNaN(height)) {
-                    height = width / (4 / 3);
-                }
 
                 video.setAttribute('width', width);
                 video.setAttribute('height', height);
-                canvas.setAttribute('width', width);
-                canvas.setAttribute('height', height);
                 streaming = true;
             }
         }, false);
-
+        //Handle clicks on the button
         startbutton.addEventListener('click', function(ev) {
+            console.log('adas');
             takepicture();
             ev.preventDefault();
         }, false);
 
-        //clearphoto();
+        clearphoto();
+    }
+    //Capturing a frame from the stream
+    function takepicture() {
+        var context = canvas.getContext('2d');
+        if (width && height) {
+            canvas.width = width;
+            canvas.height = height;
+            context.drawImage(video, 0, 0, width, height);
+
+            var data = canvas.toDataURL('image/png');
+            photo.setAttribute('src', data);
+        } else {
+            clearphoto();
+        }
     }
 
     // Fill the photo with an indication that none has been
     // captured.
-
+    //Clearing the photo box
     function clearphoto() {
         var context = canvas.getContext('2d');
-        context.fillStyle = "#AAA";
+        context.fillStyle = "#FF0000";
         context.fillRect(0, 0, canvas.width, canvas.height);
 
         var data = canvas.toDataURL('image/png');
         photo.setAttribute('src', data);
     }
-
 
 
     // Set up our event listener to run the startup process
